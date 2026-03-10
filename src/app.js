@@ -20,8 +20,6 @@ app.use(helmet({
 }));
 
 // CORS
-const cors = require("cors");
-
 const allowedOrigins = [
     "http://localhost:5173",
     "https://civitas-frontend.vercel.app"
