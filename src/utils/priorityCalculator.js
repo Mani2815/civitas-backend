@@ -65,7 +65,7 @@ const calculatePriorityScore = (complaint, allComplaints = []) => {
 
     const priorityScore = Math.round(
         categoryScore * 0.4 + timeScore * 0.3 + hotspotScore * 0.3
-    );
+    ) + (complaint.upvotes || 0);
 
     let priorityLevel = 'Low';
     if (priorityScore >= 80) priorityLevel = 'Critical';

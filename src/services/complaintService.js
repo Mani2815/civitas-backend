@@ -126,13 +126,15 @@ const createComplaint = async (complaintData, citizenId, files = []) => {
  * Get complaints based on user role
  */
 const getComplaints = async (user, queryParams = {}) => {
-    const { status, category, priority, page = 1, limit = 20, sort = '-createdAt' } = queryParams;
+    const { status, category, priority, page = 1, limit = 20, sort = '-createdAt', scope } = queryParams;
 
     const filter = {};
 
     // Role-based filtering
     if (user.role === 'citizen') {
-        filter.citizenId = user._id;
+        if (scope !== 'city') {
+            filter.citizenId = user._id;
+        }
     } else if (user.role === 'staff') {
         filter.assignedTo = user._id;
     }
@@ -190,18 +192,13 @@ const getComplaintById = async (id, userId, userRole) => {
 
     if (!complaint) return null;
 
-    // Citizens can only view their own complaints
-    if (userRole === 'citizen' && complaint.citizenId._id.toString() !== userId.toString()) {
-        return null;
-    }
+    // Mask sensitive citizen info if not the owner and not staff/admin
+    const isOwner = complaint.citizenId?._id?.toString() === userId.toString();
+    const isPrivileged = userRole === 'admin' || userRole === 'staff';
 
-    // Staff can only view assigned complaints
-    if (
-        userRole === 'staff' &&
-        complaint.assignedTo &&
-        complaint.assignedTo._id.toString() !== userId.toString()
-    ) {
-        return null;
+    if (!isOwner && !isPrivileged && complaint.citizenId) {
+        complaint.citizenId.email = undefined;
+        complaint.citizenId.phone = undefined;
     }
 
     return complaint;
@@ -268,10 +265,51 @@ const assignComplaint = async (complaintId, staffId, departmentId) => {
     return complaint;
 };
 
+/**
+ * Upvote a complaint
+ */
+const upvoteComplaint = async (complaintId, userId) => {
+    const complaint = await Complaint.findById(complaintId);
+    if (!complaint) {
+        throw new Error('Complaint not found');
+    }
+
+    // Prevent upvoting resolved or rejected complaints
+    if (['Resolved', 'Rejected'].includes(complaint.status)) {
+        const error = new Error(`Cannot support a ${complaint.status.toLowerCase()} complaint`);
+        error.statusCode = 400;
+        throw error;
+    }
+
+    const upvoteIndex = complaint.upvotedBy.indexOf(userId);
+
+    if (upvoteIndex > -1) {
+        // Undo upvote
+        complaint.upvotedBy.splice(upvoteIndex, 1);
+        complaint.upvotes = Math.max(0, complaint.upvotes - 1);
+    } else {
+        // Add upvote
+        complaint.upvotedBy.push(userId);
+        complaint.upvotes += 1;
+    }
+
+    // Recalculate priority after upvote/downvote
+    const allComplaints = await Complaint.find({
+        status: { $nin: ['Resolved', 'Rejected'] },
+    }).lean();
+    const { priorityScore, priorityLevel } = calculatePriorityScore(complaint, allComplaints);
+    complaint.priorityScore = priorityScore;
+    complaint.priorityLevel = priorityLevel;
+    
+    await complaint.save();
+    return complaint;
+};
+
 module.exports = {
     createComplaint,
     getComplaints,
     getComplaintById,
     updateStatus,
     assignComplaint,
+    upvoteComplaint,
 };

@@ -80,6 +80,16 @@ const complaintSchema = new mongoose.Schema(
             type: Date,
             default: null,
         },
+        upvotes: {
+            type: Number,
+            default: 0,
+        },
+        upvotedBy: [
+            {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: 'Citizen',
+            },
+        ],
     },
     {
         timestamps: true,
@@ -92,6 +102,7 @@ const complaintSchema = new mongoose.Schema(
 complaintSchema.index({ status: 1 });
 complaintSchema.index({ category: 1 });
 complaintSchema.index({ priorityScore: -1 });
+complaintSchema.index({ upvotes: -1 });
 complaintSchema.index({ createdAt: -1 });
 complaintSchema.index({ citizenId: 1 });
 complaintSchema.index({ assignedTo: 1 });

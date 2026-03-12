@@ -7,6 +7,7 @@ const {
     updateComplaintStatus,
     assignComplaint,
     deleteComplaint,
+    upvoteComplaint,
 } = require('../controllers/complaintController');
 const { addComment, getComments } = require('../controllers/commentController');
 const { verifyToken } = require('../middleware/authMiddleware');
@@ -28,6 +29,7 @@ router.post(
 );
 router.get('/', getComplaints);
 router.get('/:id', getComplaintById);
+router.post('/:id/upvote', requireRole('citizen'), upvoteComplaint);
 
 // Status update (staff, admin)
 router.patch('/:id/status', requireRole('staff', 'admin'), updateComplaintStatus);

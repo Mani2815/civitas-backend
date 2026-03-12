@@ -157,6 +157,29 @@ const deleteComplaint = asyncWrapper(async (req, res) => {
     });
 });
 
+/**
+ * @route   POST /api/complaints/:id/upvote
+ * @desc    Upvote/Support a complaint
+ * @access  Private/Citizen
+ */
+const upvoteComplaint = asyncWrapper(async (req, res) => {
+    const complaint = await complaintService.upvoteComplaint(req.params.id, req.user._id);
+
+    if (!complaint) {
+        return res.status(404).json({
+            success: false,
+            message: 'Complaint not found',
+        });
+    }
+
+    res.json({
+        success: true,
+        message: 'Complaint supported successfully',
+        upvotes: complaint.upvotes,
+        data: { complaint },
+    });
+});
+
 module.exports = {
     createComplaint,
     getComplaints,
@@ -164,4 +187,5 @@ module.exports = {
     updateComplaintStatus,
     assignComplaint,
     deleteComplaint,
+    upvoteComplaint,
 };
