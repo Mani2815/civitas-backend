@@ -25,6 +25,10 @@ const staffSchema = new mongoose.Schema(
             type: String,
             trim: true,
         },
+        avatar: {
+            type: String,
+            default: '',
+        },
         department: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Department',

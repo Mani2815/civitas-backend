@@ -25,6 +25,10 @@ const citizenSchema = new mongoose.Schema(
             type: String,
             trim: true,
         },
+        avatar: {
+            type: String,
+            default: '',
+        },
         isActive: {
             type: Boolean,
             default: true,

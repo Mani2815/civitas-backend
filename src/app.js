@@ -10,6 +10,8 @@ const authRoutes = require('./routes/authRoutes');
 const complaintRoutes = require('./routes/complaintRoutes');
 const analyticsRoutes = require('./routes/analyticsRoutes');
 const departmentRoutes = require('./routes/departmentRoutes');
+const userRoutes = require('./routes/userRoutes');
+const chatbotRoutes = require('./routes/chatbotRoutes');
 const errorHandler = require('./middleware/errorHandler');
 
 const app = express();
@@ -66,6 +68,8 @@ app.use('/api/auth', authRoutes);
 app.use('/api/complaints', complaintRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/departments', departmentRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/chatbot', chatbotRoutes);
 
 // 404 handler
 app.use((req, res) => {
@@ -79,3 +83,5 @@ app.use((req, res) => {
 app.use(errorHandler);
 
 module.exports = app;
+
+

@@ -99,6 +99,16 @@ const getCityStats = asyncWrapper(async (req, res) => {
     });
 });
 
+/**
+ * @route   GET /api/analytics/impact-stats
+ * @desc    Get public impact statistics for landing page
+ * @access  Public
+ */
+const getPublicImpactStats = asyncWrapper(async (req, res) => {
+    const stats = await analyticsService.getPublicImpactStats();
+    res.json({ success: true, data: stats });
+});
+
 module.exports = {
     getOverviewStats,
     getCategoryDistribution,
@@ -108,4 +118,5 @@ module.exports = {
     getHeatmapData,
     getCitizenStats,
     getCityStats,
+    getPublicImpactStats,
 };
