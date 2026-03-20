@@ -7,8 +7,8 @@ const asyncWrapper = require('../utils/asyncWrapper');
 /**
  * Generate JWT token
  */
-const generateToken = (userId) => {
-    return jwt.sign({ id: userId }, process.env.JWT_SECRET, {
+const generateToken = (userId, role) => {
+    return jwt.sign({ id: userId, role }, process.env.JWT_SECRET, {
         expiresIn: process.env.JWT_EXPIRE || '7d',
     });
 };
@@ -41,7 +41,15 @@ const register = asyncWrapper(async (req, res) => {
         isActive: true
     });
 
-    const token = generateToken(user._id);
+    const token = generateToken(user._id, 'citizen');
+
+    // Set cookie (consistent with login)
+    res.cookie('token', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
 
     res.status(201).json({
         success: true,
@@ -102,9 +110,7 @@ const login = asyncWrapper(async (req, res) => {
         });
     }
 
-    const token = jwt.sign({ id: user._id, role }, process.env.JWT_SECRET, {
-        expiresIn: process.env.JWT_EXPIRE || '7d',
-    });
+    const token = generateToken(user._id, role);
 
     // Set cookie
     res.cookie('token', token, {
